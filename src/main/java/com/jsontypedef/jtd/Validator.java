@@ -14,6 +14,22 @@ public class Validator {
   private int maxDepth;
   private int maxErrors;
 
+  public int getMaxDepth() {
+    return maxDepth;
+  }
+
+  public void setMaxDepth(int maxDepth) {
+    this.maxDepth = maxDepth;
+  }
+
+  public int getMaxErrors() {
+    return maxErrors;
+  }
+
+  public void setMaxErrors(int maxErrors) {
+    this.maxErrors = maxErrors;
+  }
+
   public List<ValidationError> validate(Schema schema, JsonElement instance) throws MaxDepthExceededException {
     ValidationState state = new ValidationState();
     state.errors = new ArrayList<>();
@@ -21,6 +37,7 @@ public class Validator {
     state.schemaTokens = new ArrayList<>();
     state.schemaTokens.add(new ArrayList<>());
     state.root = schema;
+    state.maxErrors = maxErrors;
 
     try {
       validate(state, schema, instance, null);
@@ -42,6 +59,10 @@ public class Validator {
       case EMPTY:
         break;
       case REF:
+        if (state.schemaTokens.size() == maxDepth) {
+          throw new MaxDepthExceededException();
+        }
+
         state.schemaTokens.add(new ArrayList<>());
         state.pushSchemaToken("definitions");
         state.pushSchemaToken(schema.getRef());
@@ -266,6 +287,7 @@ public class Validator {
     public List<String> instanceTokens;
     public List<List<String>> schemaTokens;
     public Schema root;
+    public int maxErrors;
 
     public void pushSchemaToken(String token) {
       schemaTokens.get(schemaTokens.size() - 1).add(token);
@@ -285,8 +307,12 @@ public class Validator {
     }
 
     public void pushError() throws MaxErrorsReachedException {
-      this.errors.add(new ValidationError(new ArrayList<>(instanceTokens),
+      errors.add(new ValidationError(new ArrayList<>(instanceTokens),
           new ArrayList<>(schemaTokens.get(schemaTokens.size() - 1))));
+
+      if (errors.size() == maxErrors) {
+        throw new MaxErrorsReachedException();
+      }
     }
   }
 

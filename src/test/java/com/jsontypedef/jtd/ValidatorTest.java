@@ -1,6 +1,7 @@
 package com.jsontypedef.jtd;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.io.InputStream;
@@ -18,9 +19,31 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 public class ValidatorTest {
+  @Test
+  public void testMaxDepth() {
+    Gson gson = new Gson();
+    Schema schema = gson.fromJson("{\"definitions\": {\"x\": {\"ref\": \"x\"}}, \"ref\": \"x\"}", Schema.class);
+
+    Validator validator = new Validator();
+    validator.setMaxDepth(3);
+    assertThrows(MaxDepthExceededException.class, () -> validator.validate(schema, null));
+  }
+
+  @Test
+  public void testMaxErrors() throws MaxDepthExceededException {
+    Gson gson = new Gson();
+    Schema schema = gson.fromJson("{\"elements\": {\"type\": \"string\"}}", Schema.class);
+    JsonElement instance = gson.fromJson("[1, 1, 1, 1, 1]", JsonElement.class);
+
+    Validator validator = new Validator();
+    validator.setMaxErrors(3);
+    assertEquals(3, validator.validate(schema, instance).size());
+  }
+
   // We ignore two test cases from the standard spec. Both of these are due to
   // the fact that the Java standard library's version of RFC3339 does not
   // support leap seconds.
