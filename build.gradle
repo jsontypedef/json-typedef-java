@@ -1,6 +1,12 @@
 plugins {
     id 'java-library'
+    id 'maven'
+    id 'signing'
 }
+
+group = "com.jsontypedef.jtd"
+archivesBaseName = "jtd"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
@@ -14,4 +20,66 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+signing {
+    sign configurations.archives
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        authentication(userName: findProperty('ossrhUsername'), password: findProperty('ossrhPassword'))
+      }
+
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+        authentication(userName: findProperty('ossrhUsername'), password: findProperty('ossrhPassword'))
+      }
+
+      pom.project {
+        name 'jtd'
+        packaging 'jar'
+        description 'JSON Type Definition implementation for Java'
+        url 'https://github.com/jsontypedef/json-typedef-java'
+
+        scm {
+          connection 'scm:git:https://github.com/jsontypedef/json-typedef-java'
+          developerConnection 'scm:git:https://github.com/jsontypedef/json-typedef-java'
+          url 'https://github.com/jsontypedef/json-typedef-java'
+        }
+
+        licenses {
+          license {
+            name 'The MIT License'
+            url 'https://opensource.org/licenses/MIT'
+          }
+        }
+
+        developers {
+          developer {
+            id 'ucarion'
+            name 'Ulysse Carion'
+            email 'ulysse@segment.com'
+          }
+        }
+      }
+    }
+  }
 }
