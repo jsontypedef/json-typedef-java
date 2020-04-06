@@ -1,0 +1,3 @@
+[submodule "src/test/resources/json-typedef-spec"]
+	path = src/test/resources/json-typedef-spec
+	url = https://github.com/jsontypedef/json-typedef-spec.git
