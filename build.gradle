@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.jsontypedef.jtd'
-version = '0.1.0'
+version = '0.2.1'
 
 // Install dependencies from Maven Central only. This is important, because we
 // in turn will deploy to Maven Central. Depending on Maven Central means that
