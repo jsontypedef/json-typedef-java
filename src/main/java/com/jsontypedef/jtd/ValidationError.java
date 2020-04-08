@@ -6,6 +6,9 @@ public class ValidationError {
   private List<String> instancePath;
   private List<String> schemaPath;
 
+  public ValidationError() {
+  }
+
   public ValidationError(List<String> instancePath, List<String> schemaPath) {
     this.instancePath = instancePath;
     this.schemaPath = schemaPath;

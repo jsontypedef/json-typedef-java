@@ -22,7 +22,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
-public class ValidatorTest {
+public class GsonValidatorTest {
   @Test
   public void testMaxDepth() {
     Gson gson = new Gson();
@@ -41,7 +41,7 @@ public class ValidatorTest {
 
     Validator validator = new Validator();
     validator.setMaxErrors(3);
-    assertEquals(3, validator.validate(schema, instance).size());
+    assertEquals(3, validator.validate(schema, new GsonAdapter(instance)).size());
   }
 
   // We ignore two test cases from the standard spec. Both of these are due to
@@ -66,8 +66,23 @@ public class ValidatorTest {
         assumeFalse(IGNORED_SPEC_TESTS.contains(testCase.getKey()));
         testCase.getValue().schema.verify();
 
-        assertEquals(testCase.getValue().errors,
-            new Validator().validate(testCase.getValue().schema, testCase.getValue().instance));
+        List<ValidationError> expected = testCase.getValue().errors;
+        List<ValidationError> actual = new Validator().validate(testCase.getValue().schema,
+            new GsonAdapter(testCase.getValue().instance));
+
+        expected.sort((e1, e2) -> {
+          String a = String.join("/", e1.getSchemaPath()) + ":" + String.join("/", e1.getInstancePath());
+          String b = String.join("/", e2.getSchemaPath()) + ":" + String.join("/", e2.getInstancePath());
+          return a.compareTo(b);
+        });
+
+        actual.sort((e1, e2) -> {
+          String a = String.join("/", e1.getSchemaPath()) + ":" + String.join("/", e1.getInstancePath());
+          String b = String.join("/", e2.getSchemaPath()) + ":" + String.join("/", e2.getInstancePath());
+          return a.compareTo(b);
+        });
+
+        assertEquals(expected, actual);
       }));
     }
 

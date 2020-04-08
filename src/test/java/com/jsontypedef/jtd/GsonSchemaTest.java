@@ -20,7 +20,7 @@ import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
-public class SchemaTest {
+public class GsonSchemaTest {
   // We ignore these spec test cases because Gson's behavior in many cases is to
   // either type-cast or ignore properties which have the wrong type.
   //
@@ -30,7 +30,7 @@ public class SchemaTest {
       "enum not array of strings", "enum contains duplicates", "discriminator not string", "illegal keyword");
 
   @TestFactory
-  public List<DynamicTest> testVerify() throws JsonIOException, JsonSyntaxException, UnsupportedEncodingException {
+  public List<DynamicTest> testVerifyGson() throws JsonIOException, JsonSyntaxException, UnsupportedEncodingException {
     ClassLoader classLoader = this.getClass().getClassLoader();
     InputStream inputStream = classLoader.getResourceAsStream("json-typedef-spec/tests/invalid_schemas.json");
     Gson gson = new Gson();

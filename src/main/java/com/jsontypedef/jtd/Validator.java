@@ -6,10 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-
 public class Validator {
   private int maxDepth;
   private int maxErrors;
@@ -30,7 +26,7 @@ public class Validator {
     this.maxErrors = maxErrors;
   }
 
-  public List<ValidationError> validate(Schema schema, JsonElement instance) throws MaxDepthExceededException {
+  public List<ValidationError> validate(Schema schema, Json instance) throws MaxDepthExceededException {
     ValidationState state = new ValidationState();
     state.errors = new ArrayList<>();
     state.instanceTokens = new ArrayList<>();
@@ -49,9 +45,9 @@ public class Validator {
     return state.errors;
   }
 
-  private void validate(ValidationState state, Schema schema, JsonElement instance, String parentTag)
+  private void validate(ValidationState state, Schema schema, Json instance, String parentTag)
       throws MaxDepthExceededException, MaxErrorsReachedException {
-    if (schema.isNullable() && instance.isJsonNull()) {
+    if (schema.isNullable() && instance.isNull()) {
       return;
     }
 
@@ -75,13 +71,13 @@ public class Validator {
         state.pushSchemaToken("type");
         switch (schema.getType()) {
           case BOOLEAN:
-            if (!instance.isJsonPrimitive() || !((JsonPrimitive) instance).isBoolean()) {
+            if (!instance.isBoolean()) {
               state.pushError();
             }
             break;
           case FLOAT32:
           case FLOAT64:
-            if (!instance.isJsonPrimitive() || !((JsonPrimitive) instance).isNumber()) {
+            if (!instance.isNumber()) {
               state.pushError();
             }
             break;
@@ -104,18 +100,18 @@ public class Validator {
             checkInt(state, instance, 0, 4294967295L);
             break;
           case STRING:
-            if (!instance.isJsonPrimitive() || !((JsonPrimitive) instance).isString()) {
+            if (!instance.isString()) {
               state.pushError();
             }
             break;
           case TIMESTAMP:
-            if (!instance.isJsonPrimitive() || !((JsonPrimitive) instance).isString()) {
+            if (!instance.isString()) {
               state.pushError();
             } else {
               // The instance is a JSON string. Let's verify it's a
               // well-formatted RFC3339 timestamp.
               try {
-                DateTimeFormatter.ISO_ZONED_DATE_TIME.parse(instance.getAsString());
+                DateTimeFormatter.ISO_ZONED_DATE_TIME.parse(instance.asString());
               } catch (DateTimeParseException e) {
                 state.pushError();
               }
@@ -127,10 +123,10 @@ public class Validator {
       case ENUM:
         state.pushSchemaToken("enum");
 
-        if (!instance.isJsonPrimitive() || !((JsonPrimitive) instance).isString()) {
+        if (!instance.isString()) {
           state.pushError();
         } else {
-          if (!schema.getEnum().contains(instance.getAsString())) {
+          if (!schema.getEnum().contains(instance.asString())) {
             state.pushError();
           }
         }
@@ -140,11 +136,11 @@ public class Validator {
       case ELEMENTS:
         state.pushSchemaToken("elements");
 
-        if (!instance.isJsonArray()) {
+        if (!instance.isArray()) {
           state.pushError();
         } else {
           int index = 0;
-          for (JsonElement subInstance : instance.getAsJsonArray()) {
+          for (Json subInstance : instance.asArray()) {
             state.pushInstanceToken(Integer.toString(index));
             validate(state, schema.getElements(), subInstance, null);
             state.popInstanceToken();
@@ -156,14 +152,14 @@ public class Validator {
         state.popSchemaToken();
         break;
       case PROPERTIES:
-        if (instance.isJsonObject()) {
+        if (instance.isObject()) {
           if (schema.getProperties() != null) {
             state.pushSchemaToken("properties");
             for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
               state.pushSchemaToken(entry.getKey());
-              if (instance.getAsJsonObject().has(entry.getKey())) {
+              if (instance.asObject().containsKey(entry.getKey())) {
                 state.pushInstanceToken(entry.getKey());
-                validate(state, entry.getValue(), instance.getAsJsonObject().get(entry.getKey()), null);
+                validate(state, entry.getValue(), instance.asObject().get(entry.getKey()), null);
                 state.popInstanceToken();
               } else {
                 state.pushError();
@@ -177,9 +173,9 @@ public class Validator {
             state.pushSchemaToken("optionalProperties");
             for (Map.Entry<String, Schema> entry : schema.getOptionalProperties().entrySet()) {
               state.pushSchemaToken(entry.getKey());
-              if (instance.getAsJsonObject().has(entry.getKey())) {
+              if (instance.asObject().containsKey(entry.getKey())) {
                 state.pushInstanceToken(entry.getKey());
-                validate(state, entry.getValue(), instance.getAsJsonObject().get(entry.getKey()), null);
+                validate(state, entry.getValue(), instance.asObject().get(entry.getKey()), null);
                 state.popInstanceToken();
               }
               state.popSchemaToken();
@@ -188,7 +184,7 @@ public class Validator {
           }
 
           if (schema.getAdditionalProperties() == null || !schema.getAdditionalProperties()) {
-            for (String key : instance.getAsJsonObject().keySet()) {
+            for (String key : instance.asObject().keySet()) {
               boolean inProperties = schema.getProperties() != null && schema.getProperties().containsKey(key);
               boolean inOptionalProperties = schema.getOptionalProperties() != null
                   && schema.getOptionalProperties().containsKey(key);
@@ -215,8 +211,8 @@ public class Validator {
         break;
       case VALUES:
         state.pushSchemaToken("values");
-        if (instance.isJsonObject()) {
-          for (Map.Entry<String, JsonElement> entry : instance.getAsJsonObject().entrySet()) {
+        if (instance.isObject()) {
+          for (Map.Entry<String, Json> entry : instance.asObject().entrySet()) {
             state.pushInstanceToken(entry.getKey());
             validate(state, schema.getValues(), entry.getValue(), null);
             state.popInstanceToken();
@@ -227,13 +223,13 @@ public class Validator {
         state.popSchemaToken();
         break;
       case DISCRIMINATOR:
-        if (instance.isJsonObject()) {
-          JsonObject instanceObj = instance.getAsJsonObject();
+        if (instance.isObject()) {
+          Map<String, Json> instanceObj = instance.asObject();
 
-          if (instanceObj.has(schema.getDiscriminator())) {
-            JsonElement instanceTag = instanceObj.get(schema.getDiscriminator());
-            if (instanceTag.isJsonPrimitive() && ((JsonPrimitive) instanceTag).isString()) {
-              String instanceTagString = instanceTag.getAsString();
+          if (instanceObj.containsKey(schema.getDiscriminator())) {
+            Json instanceTag = instanceObj.get(schema.getDiscriminator());
+            if (instanceTag.isString()) {
+              String instanceTagString = instanceTag.asString();
               if (schema.getMapping().containsKey(instanceTagString)) {
                 Schema subSchema = schema.getMapping().get(instanceTagString);
 
@@ -270,12 +266,11 @@ public class Validator {
     }
   }
 
-  private void checkInt(ValidationState state, JsonElement instance, long min, long max)
-      throws MaxErrorsReachedException {
-    if (!instance.isJsonPrimitive() || !((JsonPrimitive) instance).isNumber()) {
+  private void checkInt(ValidationState state, Json instance, long min, long max) throws MaxErrorsReachedException {
+    if (!instance.isNumber()) {
       state.pushError();
     } else {
-      double val = instance.getAsDouble();
+      double val = instance.asNumber();
       if (val < min || val > max || val != Math.round(val)) {
         state.pushError();
       }
