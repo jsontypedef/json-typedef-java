@@ -1,13 +1,19 @@
 plugins {
     id 'java-library'
-    id 'maven'
+    id 'maven-publish'
     id 'signing'
 }
 
-group = "com.jsontypedef.jtd"
-archivesBaseName = "jtd"
-version = "0.1.0"
+group = 'com.jsontypedef.jtd'
+version = '0.1.0'
 
+// Install dependencies from Maven Central only. This is important, because we
+// in turn will deploy to Maven Central. Depending on Maven Central means that
+// libraries that depend on us can depend solely on Maven Central if they
+// desire.
+//
+// Since most other repositories will pull down Maven Central too, this ends up
+// being the most flexible option for users.
 repositories {
     mavenCentral()
 }
@@ -18,68 +24,87 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
 
+// Have the "assemble" task produce -javadoc.jar and -sources.jar libraries.
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+// Have the "test" task produce a report at: build/reports/tests/test/index.html
 test {
     useJUnitPlatform()
 }
 
-signing {
-    sign configurations.archives
-}
+publishing {
+    // Declare mavenJava, a Maven (as opposed to e.g. Ivy) publication.
+    publications {
+        mavenJava(MavenPublication) {
+            // The java-library plugin defines the components.java
+            // SoftwareComponent that makes up most of our publication.
+            from components.java
 
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
-}
+            // Although Gradle/java-library does most of the work, there are
+            // certain things in the generated POM file that need to be
+            // customized. The Maven Central repository has additional
+            // requirements.
+            pom {
+                name = 'JSON Type Definition'
+                description = 'A Java implementation of JSON Type Definition validation'
+                url = 'https://github.com/jsontypedef/json-typedef-java'
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
+                licenses {
+                    license {
+                        name = 'The MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
 
-artifacts {
-    archives javadocJar, sourcesJar
-}
+                developers {
+                    developer {
+                        id = 'ucarion'
+                        name = 'Ulysse Carion'
+                        email = 'ulysse@segment.com'
+                    }
+                }
 
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-        authentication(userName: findProperty('ossrhUsername'), password: findProperty('ossrhPassword'))
-      }
-
-      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: findProperty('ossrhUsername'), password: findProperty('ossrhPassword'))
-      }
-
-      pom.project {
-        name 'jtd'
-        packaging 'jar'
-        description 'JSON Type Definition implementation for Java'
-        url 'https://github.com/jsontypedef/json-typedef-java'
-
-        scm {
-          connection 'scm:git:https://github.com/jsontypedef/json-typedef-java'
-          developerConnection 'scm:git:https://github.com/jsontypedef/json-typedef-java'
-          url 'https://github.com/jsontypedef/json-typedef-java'
+                scm {
+                    connection = 'scm:git:https://github.com/jsontypedef/json-typedef-java'
+                    developerConnection = 'scm:git:https://github.com/jsontypedef/json-typedef-java'
+                    url = 'https://github.com/jsontypedef/json-typedef-java'
+                }
+            }
         }
-
-        licenses {
-          license {
-            name 'The MIT License'
-            url 'https://opensource.org/licenses/MIT'
-          }
-        }
-
-        developers {
-          developer {
-            id 'ucarion'
-            name 'Ulysse Carion'
-            email 'ulysse@segment.com'
-          }
-        }
-      }
     }
-  }
+
+    // Declare mavenCentral, a Maven repository. This is the usual Maven Central
+    // repository.
+    repositories {
+        maven {
+            name = 'mavenCentral'
+            url = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+
+            credentials {
+                username = findProperty('JTD_MAVEN_CENTRAL_USERNAME')
+                password = findProperty('JTD_MAVEN_CENTRAL_PASSWORD')
+            }
+        }
+    }
+}
+
+// Always sign the mavenJava publication, which is what we deploy to Maven
+// Central. Signing publications is a requirement for Maven Central.
+signing {
+    // Use an in-memory key and password, so that we can more easily sign
+    // artifacts from CI, where setting up GPG is comparably difficult.
+    //
+    // Under the hood, the signing key was created using:
+    //
+    // gpg --armor --export-secret-keys KEYID
+    //
+    // And the password is an additional level of security.
+    def signingKey = findProperty('JTD_MAVEN_CENTRAL_GPG_SIGNING_KEY')
+    def signingPassword = findProperty('JTD_MAVEN_CENTRAL_GPG_SIGNING_PASSWORD')
+    useInMemoryPgpKeys(signingKey, signingPassword)
+
+    sign publishing.publications.mavenJava
 }
