@@ -6,26 +6,68 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Validates schemas against instances, returning a list of validation errors.
+ */
 public class Validator {
   private int maxDepth;
   private int maxErrors;
 
+  /**
+   * Get the maximum number of references {@code validate} will follow before
+   * raising {@code MaxDepthExceededException}.
+   *
+   * @return the max depth during {@code validate}
+   */
   public int getMaxDepth() {
     return maxDepth;
   }
 
+  /**
+   * Set the maximum number of references {@code validate} will follow before
+   * raising {@code MaxDepthExceededException}.
+   *
+   * @param maxDepth the max depth during {@code validate}
+   */
   public void setMaxDepth(int maxDepth) {
     this.maxDepth = maxDepth;
   }
 
+  /**
+   * Get the maximum number of errors {@code validate} may return.
+   *
+   * @return the maximum errors from {@code validate}
+   */
   public int getMaxErrors() {
     return maxErrors;
   }
 
+  /**
+   * Set the maximum number of errors {@code validate} may return.
+   *
+   * @param maxErrors the maximum errors from {@code validate}
+   */
   public void setMaxErrors(int maxErrors) {
     this.maxErrors = maxErrors;
   }
 
+  /**
+   * Validate {@code schema} against {@code instance}, returning a list of
+   * {@code ValidationError}.
+   *
+   * If there are no validation errors, then this method returns an empty list.
+   * To limit the maximum number of errors returned, use {@code setMaxErrors}.
+   *
+   * The default behavior is to return all errors, and to follow an unlimited
+   * number of references. For schemas with cyclic references, this may result
+   * in a stack overflow.
+   *
+   * @param schema the schema to validate against
+   * @param instance the JSON data to validate
+   * @return a list of validation errors
+   * @throws MaxDepthExceededException if the number of references followed
+   * exceeds the configured maximum depth
+   */
   public List<ValidationError> validate(Schema schema, Json instance) throws MaxDepthExceededException {
     ValidationState state = new ValidationState();
     state.errors = new ArrayList<>();
@@ -311,6 +353,9 @@ public class Validator {
     }
   }
 
+  /**
+   * Dummy error to implement maxDepth. Never returned to the user.
+   */
   private static class MaxErrorsReachedException extends Exception {
     private static final long serialVersionUID = -1396966477948063085L;
   }

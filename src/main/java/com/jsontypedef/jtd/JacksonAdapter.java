@@ -7,9 +7,17 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+/**
+ * An implementation of {@code Json} for Jackson.
+ */
 public class JacksonAdapter implements Json {
   private JsonNode jsonNode;
 
+  /**
+   * Constructs a {@code JacksonAdapter} that wraps a Jackson {@code JsonNode}.
+   *
+   * @param jsonNode the Jackson value to wrap
+   */
   public JacksonAdapter(JsonNode jsonNode) {
     this.jsonNode = jsonNode;
   }

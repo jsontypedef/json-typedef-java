@@ -7,9 +7,17 @@ import java.util.Map;
 
 import com.google.gson.JsonElement;
 
+/**
+ * An implementation of {@code Json} for Gson.
+ */
 public class GsonAdapter implements Json {
   private JsonElement jsonElement;
 
+  /**
+   * Constructs a {@code GsonAdapter} that wraps a Gson {@code JsonElement}.
+   *
+   * @param jsonElement the Gson value to wrap
+   */
   public GsonAdapter(JsonElement jsonElement) {
     this.jsonElement = jsonElement;
   }

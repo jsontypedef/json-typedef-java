@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Represents a JSON Type Definition schema.
+ */
 public class Schema {
   private Map<String, Schema> definitions;
   private boolean nullable;
@@ -54,6 +57,17 @@ public class Schema {
       // Discriminator form
       { false, false, false, false, false, false, false, false, true, true } };
 
+  /**
+   * Ensures the schema is a valid root schema.
+   *
+   * The JSON Type Definition has some rules for the correctness of a schema
+   * that go beyond what can be represented in Java's type system. This method
+   * will verify these rules, such as ensuring that all references have a
+   * corresponding definition, and only valid combinations of JSON Typedef
+   * keywords are used.
+   *
+   * @throws InvalidSchemaException if the schema is not valid
+   */
   public void verify() throws InvalidSchemaException {
     verify(this);
   }
@@ -145,6 +159,15 @@ public class Schema {
     }
   }
 
+  /**
+   * Gets the form the {@code Schema} takes on.
+   *
+   * The return value of this method is not meaningful if the {@code Schema} is
+   * not a valid schema, such as if calling {@code verify} on its containing
+   * root schema raises {@code InvalidSchemaException}.
+   *
+   * @return the form of the schema
+   */
   public Form getForm() {
     if (this.ref != null) {
       return Form.REF;
@@ -167,106 +190,236 @@ public class Schema {
     }
   }
 
+  /**
+   * Gets the value of the schema's {@code definitions} keyword.
+   *
+   * @return the {@code definitions} keyword
+   */
   public Map<String, Schema> getDefinitions() {
     return definitions;
   }
 
+  /**
+   * Sets the value of the schema's {@code definitions} keyword.
+   *
+   * @param definitions the {@code definitions} keyword
+   */
   public void setDefinitions(Map<String, Schema> definitions) {
     this.definitions = definitions;
   }
 
+  /**
+   * Gets the value of the schema's {@code nullable} keyword.
+   *
+   * @return the {@code nullable} keyword
+   */
   public boolean isNullable() {
     return nullable;
   }
 
+  /**
+   * Sets the value of the schema's {@code nullable} keyword.
+   *
+   * @param nullable the {@code nullable} keyword
+   */
   public void setNullable(boolean nullable) {
     this.nullable = nullable;
   }
 
+  /**
+   * Gets the value of the schema's {@code metadata} keyword.
+   *
+   * @return the {@code metadata} keyword
+   */
   public Map<String, Object> getMetadata() {
     return metadata;
   }
 
+  /**
+   * Sets the value of the schema's {@code metadata} keyword.
+   *
+   * @param metadata the {@code metadata} keyword
+   */
   public void setMetadata(Map<String, Object> metadata) {
     this.metadata = metadata;
   }
 
+  /**
+   * Gets the value of the schema's {@code ref} keyword.
+   *
+   * @return the {@code ref} keyword
+   */
   public String getRef() {
     return ref;
   }
 
+  /**
+   * Sets the value of the schema's {@code ref} keyword.
+   *
+   * @param ref the {@code ref} keyword
+   */
   public void setRef(String ref) {
     this.ref = ref;
   }
 
+  /**
+   * Gets the value of the schema's {@code type} keyword.
+   *
+   * @return the {@code type} keyword
+   */
   public Type getType() {
     return type;
   }
 
+  /**
+   * Sets the value of the schema's {@code type} keyword.
+   *
+   * @param type the {@code type} keyword
+   */
   public void setType(Type type) {
     this.type = type;
   }
 
+  /**
+   * Gets the value of the schema's {@code enum} keyword.
+   *
+   * @return the {@code enum} keyword
+   */
   public Set<String> getEnum() {
     return enm;
   }
 
+  /**
+   * Sets the value of the schema's {@code enum} keyword.
+   *
+   * @param enm the {@code enum} keyword
+   */
   public void setEnum(Set<String> enm) {
     this.enm = enm;
   }
 
+  /**
+   * Gets the value of the schema's {@code elements} keyword.
+   *
+   * @return the {@code elements} keyword
+   */
   public Schema getElements() {
     return elements;
   }
 
+  /**
+   * Sets the value of the schema's {@code elements} keyword.
+   *
+   * @param elements the {@code elements} keyword
+   */
   public void setElements(Schema elements) {
     this.elements = elements;
   }
 
+  /**
+   * Gets the value of the schema's {@code properties} keyword.
+   *
+   * @return the {@code properties} keyword
+   */
   public Map<String, Schema> getProperties() {
     return properties;
   }
 
+  /**
+   * Sets the value of the schema's {@code properties} keyword.
+   *
+   * @param properties the {@code properties} keyword
+   */
   public void setProperties(Map<String, Schema> properties) {
     this.properties = properties;
   }
 
+  /**
+   * Gets the value of the schema's {@code optionalProperties} keyword.
+   *
+   * @return the {@code optionalProperties} keyword
+   */
   public Map<String, Schema> getOptionalProperties() {
     return optionalProperties;
   }
 
+  /**
+   * Sets the value of the schema's {@code optionalProperties} keyword.
+   *
+   * @param optionalProperties the {@code optionalProperties} keyword
+   */
   public void setOptionalProperties(Map<String, Schema> optionalProperties) {
     this.optionalProperties = optionalProperties;
   }
 
+  /**
+   * Gets the value of the schema's {@code additionalProperties} keyword.
+   *
+   * @return the {@code additionalProperties} keyword
+   */
   public Boolean getAdditionalProperties() {
     return additionalProperties;
   }
 
+  /**
+   * Sets the value of the schema's {@code additionalProperties} keyword.
+   *
+   * @param additionalProperties the {@code additionalProperties} keyword
+   */
   public void setAdditionalProperties(Boolean additionalProperties) {
     this.additionalProperties = additionalProperties;
   }
 
+  /**
+   * Gets the value of the schema's {@code values} keyword.
+   *
+   * @return the {@code values} keyword
+   */
   public Schema getValues() {
     return values;
   }
 
+  /**
+   * Sets the value of the schema's {@code values} keyword.
+   *
+   * @param values the {@code values} keyword
+   */
   public void setValues(Schema values) {
     this.values = values;
   }
 
+  /**
+   * Gets the value of the schema's {@code discriminator} keyword.
+   *
+   * @return the {@code discriminator} keyword
+   */
   public String getDiscriminator() {
     return discriminator;
   }
 
+  /**
+   * Sets the value of the schema's {@code discriminator} keyword.
+   *
+   * @param discriminator the {@code discriminator} keyword
+   */
   public void setDiscriminator(String discriminator) {
     this.discriminator = discriminator;
   }
 
+  /**
+   * Gets the value of the schema's {@code mapping} keyword.
+   *
+   * @return the {@code mapping} keyword
+   */
   public Map<String, Schema> getMapping() {
     return mapping;
   }
 
+  /**
+   * Sets the value of the schema's {@code mapping} keyword.
+   *
+   * @param mapping the {@code mapping} keyword
+   */
   public void setMapping(Map<String, Schema> mapping) {
     this.mapping = mapping;
   }

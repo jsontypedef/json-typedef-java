@@ -2,30 +2,69 @@ package com.jsontypedef.jtd;
 
 import java.util.List;
 
+/**
+ * Represents a single validation problem, typically returned from
+ * {@code verify} in {@code Validator}.
+ *
+ * Note well that this class is not an {@code Exception}. It is a plain old Java
+ * object.
+ */
 public class ValidationError {
   private List<String> instancePath;
   private List<String> schemaPath;
 
+  /**
+   * Constructs a new validation error with an uninitialized
+   * {@code instancePath} and {@code schemaPath}.
+   */
   public ValidationError() {
   }
 
+  /**
+   * Constructs a new validation error with the given instance and schema paths.
+   *
+   * @param instancePath the instance path
+   * @param schemaPath the schema path
+   */
   public ValidationError(List<String> instancePath, List<String> schemaPath) {
     this.instancePath = instancePath;
     this.schemaPath = schemaPath;
   }
 
+  /**
+   * Gets the error's instance path, which is a "pointer" to the part of the
+   * instance that was rejected.
+   *
+   * @return the instance path
+   */
   public List<String> getInstancePath() {
     return instancePath;
   }
 
+  /**
+   * Sets the error's instance path.
+   *
+   * @param instancePath the instance path
+   */
   public void setInstancePath(List<String> instancePath) {
     this.instancePath = instancePath;
   }
 
+  /**
+   * Gets the error's schema path, which is a "pointer" to the part of the
+   * schema that was rejected.
+   *
+   * @return the schema path
+   */
   public List<String> getSchemaPath() {
     return schemaPath;
   }
 
+  /**
+   * Sets the error's schema path.
+   *
+   * @param schemaPath the schema path
+   */
   public void setSchemaPath(List<String> schemaPath) {
     this.schemaPath = schemaPath;
   }
