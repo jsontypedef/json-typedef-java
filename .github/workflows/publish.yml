@@ -1,0 +1,25 @@
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - run: ./gradlew test
+      - run: ./gradlew publishMavenJavaPublicationToMavenCentralRepository
+        env:
+          ORG_GRADLE_PROJECT_JTD_MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_JTD_MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_JTD_MAVEN_CENTRAL_GPG_SIGNING_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_JTD_MAVEN_CENTRAL_GPG_SIGNING_PASSWORD: ${{ secrets.MAVEN_CENTRAL_GPG_SIGNING_PASSWORD }}
