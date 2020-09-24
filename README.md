@@ -14,6 +14,11 @@ for JSON. `jtd` primarily gives you two things:
 
 With this package, you can add JSON Typedef-powered validation to your
 application, or you can build your own tooling on top of JSON Type Definition.
+This package works with both [Gson][gson] and [Jackson][jackson], and you can
+implement the `Json` interface to add your own backend too.
+
+[gson]: https://github.com/google/gson
+[jackson]: https://github.com/FasterXML/jackson
 
 ## Installation
 
@@ -45,8 +50,8 @@ For more high-level documentation about JSON Typedef in general, or JSON Typedef
 in combination with Java in particular, see:
 
 * [The JSON Typedef Website][jtd]
-* ["Validating JSON in Java with JSON Typedef"][jtd-js-validation]
-* ["Generating Java from JSON Typedef Schemas"][jtd-ts-codegen]
+* ["Validating JSON in Java with JSON Typedef"][jtd-java-validation]
+* ["Generating Java from JSON Typedef Schemas"][jtd-java-codegen]
 
 ## Basic Usage
 
@@ -76,10 +81,11 @@ Schema schema = gson.fromJson(schemaJson, Schema.class);
 
 // Validators can find validation errors in an input against a schema.
 //
-// They are backend-neutral; you can use a Validator with both Gson and Jackson.
-// To make that work, you'll see in these examples that we construct GsonAdapter
-// and JacksonAdapter instances, which abstract away Gson and Jackson into a
-// shared interface (which you can implement yourself as well).
+// Validators are backend-neutral; you can use a Validator with both Gson and
+// Jackson. To make that work, you'll see in these examples that we construct
+// GsonAdapter and JacksonAdapter instances, which abstract away Gson and
+// Jackson into a shared interface (called Json, which you can implement
+// yourself as well).
 Validator validator = new Validator();
 
 // Validator.validate() returns an array of validation errors. If there were
@@ -87,7 +93,7 @@ Validator validator = new Validator();
 //
 // This input is perfect, so we'll get back an empty list of validation
 // errors.
-String okJson = "{ \"name\": \"John Doe\", \"age\": 43, \"phones\": [\"+44 1234567\", \"+44 2345678\"] }";
+String okJson = "{\"name\":\"John Doe\",\"age\":43,\"phones\":[\"+44 1234567\",\"+44 2345678\"]}";
 JsonElement okInput = gson.fromJson(okJson, JsonElement.class);
 
 // Outputs: []
@@ -175,9 +181,15 @@ schema:
 
 ```java
 public class ValidateUntrusted {
+  // validateUntrusted returns true if `data` satisfies `schema`, and false if
+  // it does not. Throws an exception if `schema` is invalid, or if validation
+  // goes in an infinite loop.
   private boolean validateUntrusted(Schema schema, Json data) throws InvalidSchemaException, MaxDepthExceededException {
     schema.verify();
 
+    // You should tune maxDepth to be high enough that most legitimate schemas
+    // evaluate without errors, but low enough that an attacker cannot cause a
+    // denial of service attack.
     Validator validator = new Validator();
     validator.setMaxDepth(32);
 
