@@ -227,5 +227,5 @@ public class ValidateUntrusted {
 ```
 
 [jtd]: https://jsontypedef.com
-[jtd-java-codegen]: https://jsontypedef.com/docs/java/code-generation
+[jtd-java-codegen]: https://jsontypedef.com/docs/java-codegen/
 [jtd-java-validation]: https://jsontypedef.com/docs/java/validation
